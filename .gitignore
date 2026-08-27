@@ -1,0 +1,17 @@
+# Messdaten — gehören nicht ins Repo, wachsen und sind maschinell erzeugt
+data/
+*.db
+snapshot.json
+gemeinden.json
+
+__pycache__/
+*.py[cod]
+.DS_Store
+
+# Einzel-SVGs sind im Sprite gebündelt; nur Sprite + Lizenz werden ausgeliefert
+web/icons/*.svg
+.env
+.env.*
+!.env.example
+backup/
+docker-compose.public.yml

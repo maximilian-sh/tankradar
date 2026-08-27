@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Tankradar</title>
+<meta name="description" content="Zeigt die günstigste Tankstelle in der Nähe — nach echten Kosten inklusive Umweg.">
+<meta name="theme-color" content="#f2f5f5" media="(prefers-color-scheme:light)">
+<meta name="theme-color" content="#0d1315" media="(prefers-color-scheme:dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Tankradar">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" href="/favicon.png" sizes="32x32">
+<link rel="icon" href="/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="stylesheet" href="/vendor/leaflet.css">
+<link rel="stylesheet" href="/app.css">
+</head>
+<body data-view="now">
+
+<header class="top">
+  <div class="top-in">
+    <span class="brand"><svg class="ico"><use href="/sprite.svg#i-fuel"></use></svg>Tankradar</span>
+    <nav class="tabs" role="group" aria-label="Ansicht">
+      <button data-view="now" aria-pressed="true">
+        <svg class="ico"><use href="/sprite.svg#i-navigation"></use></svg>Jetzt tanken</button>
+      <button data-view="dash" aria-pressed="false">
+        <svg class="ico"><use href="/sprite.svg#i-layout-dashboard"></use></svg>Dashboard</button>
+    </nav>
+    <div class="seg" id="fuelseg" role="group" aria-label="Spritsorte"></div>
+    <button class="iconbtn" id="locate" title="Standort neu bestimmen" aria-label="Standort neu bestimmen">
+      <svg class="ico"><use href="/sprite.svg#i-crosshair"></use></svg></button>
+    <button class="iconbtn" id="reload" title="Preise neu laden" aria-label="Preise neu laden">
+      <svg class="ico"><use href="/sprite.svg#i-refresh-cw"></use></svg></button>
+  </div>
+  <div class="bar" id="status"></div>
+</header>
+
+<main>
+  <!-- ================= Mobil / „Jetzt tanken" ================= -->
+  <section class="mobile" id="viewNow">
+    <div id="hero"></div>
+
+    <h2 class="sec"><svg class="ico"><use href="/sprite.svg#i-list-ordered"></use></svg>
+      Alternativen in der Nähe</h2>
+    <div class="rows" id="list"></div>
+
+    <h2 class="sec"><svg class="ico"><use href="/sprite.svg#i-clock"></use></svg>
+      Wann tanken</h2>
+    <div class="panel" id="timing"></div>
+
+    <h2 class="sec"><svg class="ico"><use href="/sprite.svg#i-droplet"></use></svg>
+      Deine Karten</h2>
+    <div class="panel">
+      <div id="cardList"></div>
+      <p class="hint" id="cardNote"></p>
+    </div>
+
+    <h2 class="sec"><svg class="ico"><use href="/sprite.svg#i-settings"></use></svg>
+      Dein Fahrzeug</h2>
+    <div class="panel">
+      <div class="fields">
+        <div class="f"><label for="li">Liter</label>
+          <input id="li" type="number" inputmode="decimal" value="45" min="1" step="1"></div>
+        <div class="f"><label for="co">l / 100 km</label>
+          <input id="co" type="number" inputmode="decimal" value="6.5" min="1" step="0.1"></div>
+        <div class="f"><label for="de">Umweg ×</label>
+          <input id="de" type="number" inputmode="decimal" value="2" min="0" step="0.5"></div>
+      </div>
+      <p class="hint">Der Umweg-Faktor rechnet Hin- und Rückweg (×2). Der Sprit, den die Fahrt
+        zur Tankstelle selbst verbraucht, ist in den Echtkosten enthalten.</p>
+    </div>
+  </section>
+
+  <!-- ================= Desktop-Dashboard ================= -->
+  <section class="dash" id="viewDash">
+    <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:14px">
+      <div class="seg" id="rangeseg" role="group" aria-label="Zeitraum"></div>
+      <div class="seg" id="scopeseg" role="group" aria-label="Gebiet"></div>
+      <label style="display:flex;align-items:center;gap:7px;font-size:13px;color:var(--tx2);
+                    cursor:pointer;margin-left:auto">
+        <input type="checkbox" id="discToggle" checked>Kartenrabatte einrechnen</label>
+    </div>
+    <div class="kpis" id="kpis" style="margin-bottom:14px"></div>
+
+    <div class="card" style="margin-bottom:14px">
+      <h3><svg class="ico"><use href="/sprite.svg#i-trending-down"></use></svg>
+        Marktverlauf — Bestpreis, Schnitt und Spanne</h3>
+      <div id="bandChart"></div>
+    </div>
+
+    <div class="grid g-main" style="margin-bottom:14px">
+      <div class="card"><h3><svg class="ico"><use href="/sprite.svg#i-map"></use></svg>Karte</h3>
+        <div id="map"></div>
+        <p class="note" id="mapNote"></p></div>
+      <div class="grid">
+        <div class="card"><h3><svg class="ico"><use href="/sprite.svg#i-gauge"></use></svg>
+          Preisverteilung jetzt</h3><div id="histoChart"></div></div>
+        <div class="card"><h3 id="histTitle">
+          <svg class="ico"><use href="/sprite.svg#i-trending-down"></use></svg>Preisverlauf</h3>
+          <div id="hist"></div></div>
+      </div>
+    </div>
+
+    <div class="grid g-quad" style="margin-bottom:14px">
+      <div class="card"><h3><svg class="ico"><use href="/sprite.svg#i-clock"></use></svg>
+        Tagesprofil</h3><div id="hourChart"></div></div>
+      <div class="card"><h3><svg class="ico"><use href="/sprite.svg#i-refresh-cw"></use></svg>
+        Tageszyklus ab 12:00</h3><div id="cycleChart"></div></div>
+      <div class="card"><h3><svg class="ico"><use href="/sprite.svg#i-arrow-up"></use></svg>
+        Mittagssprung</h3><div id="noonChart"></div></div>
+      <div class="card"><h3><svg class="ico"><use href="/sprite.svg#i-calendar-days"></use></svg>
+        Wochenprofil</h3><div id="weekChart"></div></div>
+    </div>
+
+    <div class="grid g-half" style="margin-bottom:14px">
+      <div class="card"><h3><svg class="ico"><use href="/sprite.svg#i-circle-check"></use></svg>
+        Wer ist am häufigsten der Günstigste</h3><div id="leadChart"></div></div>
+      <div class="card"><h3><svg class="ico"><use href="/sprite.svg#i-droplet"></use></svg>
+        Marken im Schnitt</h3><div id="brandChart"></div></div>
+      <div class="card"><h3><svg class="ico"><use href="/sprite.svg#i-triangle-alert"></use></svg>
+        Wer ändert am meisten</h3><div id="volChart"></div></div>
+    </div>
+
+    <div class="card">
+      <h3><svg class="ico"><use href="/sprite.svg#i-list-ordered"></use></svg>Alle Tankstellen</h3>
+      <div class="scroll"><table>
+        <thead><tr>
+          <th data-s="total">Echtkosten</th><th data-s="amount">€/l</th>
+          <th data-s="km">km</th><th data-s="name">Station</th>
+          <th data-s="c">Ort</th><th data-s="ts">Stand</th>
+        </tr></thead><tbody id="dashRows"></tbody></table></div>
+      <p class="note" id="dashNote"></p>
+    </div>
+  </section>
+  <footer style="margin-top:26px;padding-top:14px;border-top:1px solid var(--line);
+                 font-size:12px;color:var(--tx3);line-height:1.6">
+    <a href="https://github.com/maximilian-sh/tankradar" target="_blank" rel="noopener"
+       style="color:var(--acc);display:inline-flex;align-items:center;gap:6px;font-weight:600">
+      <svg class="ico"><use href="/sprite.svg#i-external-link"></use></svg>Quellcode auf GitHub</a>
+    &nbsp;·&nbsp; PolyForm Noncommercial<br>
+    Preisdaten: <a href="https://www.spritpreisrechner.at" target="_blank" rel="noopener"
+    style="color:var(--acc)">E-Control Spritpreisrechner</a> — amtliche Preistransparenzdatenbank.
+    Routing: <a href="https://project-osrm.org" target="_blank" rel="noopener"
+    style="color:var(--acc)">OSRM</a>. Karte: <a href="https://www.openstreetmap.org/copyright"
+    target="_blank" rel="noopener" style="color:var(--acc)">OpenStreetMap</a> (ODbL).
+    Icons: Lucide (ISC).<br>
+    Preise können sich jederzeit ändern; es gilt der Aushang an der Tankstelle. Ohne Gewähr.
+  </footer>
+</main>
+
+<script src="/vendor/leaflet.js"></script>
+<script src="/app.js"></script>
+</body>
+</html>

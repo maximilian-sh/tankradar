@@ -1,0 +1,55 @@
+{
+  "_hinweis": "Von Hand gepflegt. Diese Rabatte stehen NICHT in den E-Control-Daten — die API liefert nur, ob Karte akzeptiert wird, nicht welchen Nachlass es dafür gibt. Werte können veralten; im Zweifel gilt der Aushang an der Tankstelle.",
+  "_geprueft": "2026-08-27",
+  "karten": [
+    { "id": "oeamtc",    "label": "ÖAMTC Clubkarte" },
+    { "id": "oeamtc_kk", "label": "ÖAMTC Kreditkarte (card complete)" },
+    { "id": "arboe",     "label": "ARBÖ Klubkarte" },
+    { "id": "jetkarte",  "label": "Kartenzahlung bei JET" }
+  ],
+  "regeln": [
+    {
+      "id": "oeamtc-eni",
+      "marke": "ENI",
+      "braucht": "oeamtc",
+      "ct": 1.5,
+      "ct_aktion": 3.0,
+      "aktion_von": "2026-06-01",
+      "aktion_bis": "2026-09-30",
+      "sorten": ["DIE", "SUP"],
+      "label": "ÖAMTC Clubkarte",
+      "grenze": "max. 300 l/Monat, Kfz bis 7,5 t",
+      "quelle": "https://www.oeamtc.at/mitgliedschaft/leistungen/tankbonus-auf-benzin-oder-diesel-bei-enilive-31093358"
+    },
+    {
+      "id": "oeamtc-eni-kk",
+      "marke": "ENI",
+      "braucht": "oeamtc_kk",
+      "ct": 5.0,
+      "sorten": ["DIE", "SUP"],
+      "label": "ÖAMTC Kreditkarte",
+      "grenze": "3 ct sofort, 3,5 ct als Gutschrift auf der nächsten Abrechnung; max. 300 l/Monat",
+      "quelle": "https://www.oeamtc.at/mitgliedschaft/leistungen/tankbonus-auf-benzin-oder-diesel-bei-enilive-31093358"
+    },
+    {
+      "id": "jet-karte",
+      "marke": "JET",
+      "braucht": "jetkarte",
+      "ct": 0.5,
+      "sorten": ["DIE", "SUP"],
+      "label": "mit Karte",
+      "quelle": "Nutzerangabe 27.08.2026, seit Jahren gängige Praxis; nicht offiziell dokumentiert"
+    }
+  ],
+  "_nicht_uebernommen": [
+    {
+      "was": "ARBÖ bei OMV, 3 ct",
+      "warum": "gilt ausschließlich für MaxxMotion Premium-Kraftstoffe. Die E-Control erfasst nur Diesel, Super 95 und CNG — der Rabatt trifft also keinen der hier angezeigten Preise.",
+      "quelle": "https://www.arboe.at/vorteile/weitere-vorteile/vorteil-bei-omv"
+    },
+    {
+      "was": "Shell ClubSmart, 2 ct auf FuelSave",
+      "warum": "deutsches Programm. In Österreich läuft Shell Go+ mit Punkten statt festem Cent-Nachlass — ein deutscher Wert wäre hier geraten."
+    }
+  ]
+}

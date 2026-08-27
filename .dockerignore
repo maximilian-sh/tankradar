@@ -1,0 +1,8 @@
+data/
+*.json
+!package.json
+bericht.html
+coverage_probe.py
+strategy_test.py
+at.tanken.collect.plist
+.git

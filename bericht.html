@@ -1,0 +1,425 @@
+<title>Tankradar Rheintal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Source+Sans+3:wght@400;600&display=swap">
+<style>
+:root{
+  --ground:#eef1f1; --surface:#fff; --surface2:#e4e9e9; --line:#cdd6d6;
+  --ink:#0f1718; --ink2:#4e6062; --ink3:#7d9092;
+  --acc:#0f6e78; --acc-soft:#d8ebed;
+  --good:#2e7d4f; --mid:#a8761f; --bad:#b4342c;
+  --disp:"Barlow Condensed",Impact,"Haettenschweiler",sans-serif;
+  --body:"Source Sans 3",-apple-system,BlinkMacSystemFont,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --ground:#0d1315; --surface:#141d1f; --surface2:#1b2528; --line:#2a3739;
+    --ink:#e2eaea; --ink2:#9fb2b4; --ink3:#71868a;
+    --acc:#38b0bc; --acc-soft:#123238;
+    --good:#4cb872; --mid:#d9a441; --bad:#e5675d;
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0d1315; --surface:#141d1f; --surface2:#1b2528; --line:#2a3739;
+  --ink:#e2eaea; --ink2:#9fb2b4; --ink3:#71868a;
+  --acc:#38b0bc; --acc-soft:#123238;
+  --good:#4cb872; --mid:#d9a441; --bad:#e5675d;
+}
+*{box-sizing:border-box}
+body{background:var(--ground);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.6;
+     margin:0;padding:0}
+.wrap{max-width:1080px;margin:0 auto;padding:40px 22px 72px}
+h1,h2,h3{font-family:var(--disp);font-weight:700;letter-spacing:.005em;text-wrap:balance;margin:0}
+h1{font-size:clamp(38px,6.5vw,62px);line-height:.96;text-transform:uppercase}
+h2{font-size:clamp(23px,3vw,30px);text-transform:uppercase;margin-bottom:6px}
+h3{font-size:18px;font-family:var(--body);font-weight:600;letter-spacing:0;text-transform:none}
+p{margin:0 0 12px;max-width:66ch}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--acc);
+         font-weight:600}
+.lede{font-size:18.5px;color:var(--ink2);max-width:64ch;margin-top:14px}
+header{border-bottom:3px solid var(--ink);padding-bottom:22px;margin-bottom:34px}
+.meta{font-family:var(--mono);font-size:11.5px;color:var(--ink3);margin-top:16px;
+      display:flex;gap:18px;flex-wrap:wrap}
+section{margin-top:44px}
+.rule{display:flex;align-items:baseline;gap:12px;border-bottom:1px solid var(--line);padding-bottom:8px;margin-bottom:18px}
+.rule .n{font-family:var(--mono);font-size:11px;color:var(--ink3);letter-spacing:.1em}
+
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(178px,1fr));gap:1px;background:var(--line);
+       border:1px solid var(--line);border-radius:3px;overflow:hidden}
+.tile{background:var(--surface);padding:16px 17px}
+.tile .k{font-family:var(--mono);font-size:10.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--ink3)}
+.tile .v{font-family:var(--disp);font-size:40px;font-weight:700;line-height:1.05;margin:5px 0 2px;
+         font-variant-numeric:tabular-nums}
+.tile .v small{font-size:19px;color:var(--ink2);font-weight:600}
+.tile .d{font-size:13px;color:var(--ink2);line-height:1.42}
+.tile.hot .v{color:var(--bad)}
+.tile.ok .v{color:var(--good)}
+
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:26px}
+@media(max-width:820px){.cols{grid-template-columns:1fr}}
+
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{text-align:left;font-family:var(--mono);font-size:10px;letter-spacing:.11em;text-transform:uppercase;
+   color:var(--ink3);padding:0 9px 8px;font-weight:600;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:9px;border-bottom:1px solid var(--line);vertical-align:top}
+.num{font-family:var(--mono);text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.verdict{font-family:var(--mono);font-size:10.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
+         padding:2px 7px;border-radius:2px;white-space:nowrap;display:inline-block}
+.v-use{background:var(--good);color:var(--surface)}
+.v-no{background:var(--surface2);color:var(--ink3);border:1px solid var(--line)}
+.v-part{background:var(--mid);color:var(--surface)}
+
+code,.mono{font-family:var(--mono);font-size:13px}
+code{background:var(--surface2);padding:1px 5px;border-radius:2px}
+pre{background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--acc);
+    padding:13px 15px;overflow-x:auto;font-family:var(--mono);font-size:12.5px;line-height:1.65;margin:0 0 12px;
+    border-radius:0 3px 3px 0}
+.callout{background:var(--acc-soft);border-left:3px solid var(--acc);padding:15px 18px;margin:18px 0;border-radius:0 3px 3px 0}
+.callout p:last-child{margin-bottom:0}
+.callout strong{color:var(--acc)}
+
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:3px;padding:18px 19px}
+.ctrl{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end;margin-bottom:16px}
+.fld{display:flex;flex-direction:column;gap:5px}
+.fld label{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3)}
+.fld input{background:var(--ground);border:1px solid var(--line);color:var(--ink);border-radius:2px;
+           padding:7px 9px;width:88px;font-family:var(--mono);font-size:14px}
+.fld input:focus-visible{outline:2px solid var(--acc);outline-offset:1px;border-color:var(--acc)}
+.seg{display:flex;border:1px solid var(--line);border-radius:2px;overflow:hidden}
+.seg button{background:var(--ground);border:0;border-right:1px solid var(--line);color:var(--ink2);
+            padding:8px 16px;cursor:pointer;font-family:var(--disp);font-size:16px;font-weight:600;
+            text-transform:uppercase;letter-spacing:.04em}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--acc);color:#fff}
+.seg button:focus-visible{outline:2px solid var(--acc);outline-offset:-2px}
+
+.best{display:flex;flex-wrap:wrap;gap:26px;align-items:center;border:1px solid var(--acc);
+      background:var(--acc-soft);padding:17px 19px;border-radius:3px;margin-bottom:18px}
+.best .nm{font-family:var(--disp);font-size:29px;font-weight:700;line-height:1.05;text-transform:uppercase}
+.best .pr{font-family:var(--mono);font-size:31px;font-weight:600;font-variant-numeric:tabular-nums;color:var(--acc)}
+.best .sm{font-size:13px;color:var(--ink2)}
+.best .r{margin-left:auto;text-align:right}
+.tier{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:7px;vertical-align:1px}
+.tag{font-family:var(--mono);font-size:9.5px;letter-spacing:.06em;background:var(--surface2);color:var(--ink3);
+     padding:1px 5px;border-radius:2px;margin-left:5px}
+.cap{font-size:12.5px;color:var(--ink3);margin-top:10px;line-height:1.5}
+svg{display:block;max-width:100%;height:auto}
+ul{margin:0 0 12px;padding-left:19px;max-width:66ch} li{margin-bottom:5px}
+a{color:var(--acc)}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<div class="wrap">
+<header>
+  <div class="eyebrow">Datenquellen-Analyse &middot; Vorarlberg</div>
+  <h1>Tankradar<br>Rheintal</h1>
+  <p class="lede">Welche Spritpreis-API für Österreich wirklich belastbar ist — und wo ihre
+  Grenze liegt. Alle Zahlen unten stammen aus eigenen Messungen gegen die Live-API —
+  und decken sich am Ende exakt mit dem, was die E-Control offiziell dokumentiert.</p>
+  <div class="meta">
+    <span>Erhebung 25.08.2026</span><span>Basis Altach</span>
+    <span>rund 700 API-Abfragen</span><span>Quelle: E-Control Spritpreisrechner</span>
+  </div>
+</header>
+
+<section>
+  <div class="rule"><span class="n">01</span><h2>Kernbefund</h2></div>
+  <p>Für Österreich gibt es <strong>genau eine belastbare Quelle</strong>: die öffentliche API der
+  E-Control. Sie ist gesetzlich unterfüttert — Tankstellen <em>müssen</em> Preisänderungen für Diesel und
+  Super 95 melden. Kein API-Key, keine Registrierung, keine Rate-Limits im Weg.</p>
+  <p>Der Haken steckt nicht in der Datenqualität, sondern in der Ausgabelogik: <strong>eine Abfrage liefert nie
+  alle Preise</strong>, sondern nur die günstigsten. Das ist die entscheidende Eigenschaft, die man beim Bau
+  eines Trackers verstehen muss.</p>
+  <div class="tiles">
+    <div class="tile"><div class="k">Stationen gefunden</div><div class="v">103</div>
+      <div class="d">20 km um Altach, über Gemeindezentren</div></div>
+    <div class="tile ok"><div class="k">davon mit Preis</div><div class="v">73</div>
+      <div class="d">= 71 % — bei einem Drittel der Abfragen</div></div>
+    <div class="tile hot"><div class="k">pro Einzelabfrage</div><div class="v">5</div>
+      <div class="d">Preise maximal — der Rest kommt leer zurück</div></div>
+    <div class="tile"><div class="k">Kosten</div><div class="v">0<small>&nbsp;€</small></div>
+      <div class="d">öffentlich, ohne Key</div></div>
+  </div>
+</section>
+
+<section>
+  <div class="rule"><span class="n">02</span><h2>Die Quellenlage</h2></div>
+  <div class="scroll"><table>
+    <thead><tr><th>Quelle</th><th>Abdeckung</th><th>Zugang</th><th>Urteil</th></tr></thead>
+    <tbody>
+      <tr><td><strong>E-Control Spritpreisrechner</strong><br><span class="cap">api.e-control.at/sprit/1.0</span></td>
+          <td>ganz AT, gesetzlich gemeldet</td><td>offen, kein Key</td>
+          <td><span class="verdict v-use">Basis</span></td></tr>
+      <tr><td><strong>ÖAMTC / ARBÖ / autorevue</strong></td>
+          <td>identisch — verkaufen E-Control weiter</td><td>keine eigene API</td>
+          <td><span class="verdict v-no">kein Mehrwert</span></td></tr>
+      <tr><td><strong>Tankerkönig</strong></td>
+          <td>nur Deutschland (MTS-K)</td><td>Key, gratis</td>
+          <td><span class="verdict v-no">falsches Land</span></td></tr>
+      <tr><td><strong>Marken-Apps</strong><br><span class="cap">OMV, Shell, Eni</span></td>
+          <td>nur eigene Stationen</td><td>keine offene API</td>
+          <td><span class="verdict v-part">Lückenfüller</span></td></tr>
+    </tbody>
+  </table></div>
+  <p class="cap">Für DACH später: Deutschland läuft über Tankerkönig / MTS-K nach demselben Meldeprinzip.
+  Die Schweiz hat keine gesetzliche Meldepflicht und damit keine vergleichbare Quelle.</p>
+</section>
+
+<section>
+  <div class="rule"><span class="n">03</span><h2>Die komplette API</h2></div>
+  <div class="cols">
+    <div>
+      <p>Sechs Endpunkte, mehr gibt es nicht. Kein Station-by-ID, kein Radius-Parameter,
+      keine Historie — die API kennt nur das Jetzt.</p>
+      <pre>GET /regions
+GET /regions/units?type=BL|PB
+GET /search/gas-stations/by-address
+      ?latitude=&amp;longitude=
+      &amp;fuelType=DIE|SUP|GAS
+      &amp;includeClosed=true
+GET /search/gas-stations/by-region
+      ?code=&amp;type=BL|PB&amp;fuelType=
+GET /ping   GET /monitoring</pre>
+      <p class="cap">Vollständige Spec unter <code>/sprit/1.0/api-docs?group=public-api</code>.
+      Nur drei Spritsorten: Diesel, Super 95, CNG. Kein Super&nbsp;98, kein Premium-Diesel.</p>
+    </div>
+    <div>
+      <h3>Was pro Station zurückkommt</h3>
+      <ul>
+        <li>Koordinaten, Adresse, Ort, PLZ</li>
+        <li>Öffnungszeiten je Wochentag inkl. Feiertag</li>
+        <li>Selbstbedienung / unbemannt / Service</li>
+        <li>Zahlungsmittel, Website, Telefon</li>
+        <li><code>prices[]</code> — <strong>oder leer</strong></li>
+      </ul>
+      <div class="callout"><p><strong>Der wichtigste Punkt:</strong> <code>prices: []</code> heißt
+      nicht „diese Tankstelle hat keinen Preis“. Es heißt „diese Tankstelle gehört bei
+      <em>dieser</em> Abfrage nicht zu den günstigsten“.</p></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="rule"><span class="n">04</span><h2>Wo die Daten aufhören</h2></div>
+  <p>Ich habe die Abfrage exakt auf die Koordinaten einzelner Tankstellen gelegt — Distanz 0,0 km,
+  näher geht nicht. Ergebnis:</p>
+  <div class="scroll"><table>
+    <thead><tr><th>Station</th><th>Abfrage direkt darauf</th><th>Erklärung</th></tr></thead>
+    <tbody>
+      <tr><td>TK Koblach</td><td class="mono" style="color:var(--good)">2,029 €</td>
+          <td>war nur <em>relativ</em> zu teuer — Re-Zentrierung holt den Preis</td></tr>
+      <tr><td>BP Götzis</td><td class="mono" style="color:var(--bad)">prices: []</td>
+          <td>bleibt unsichtbar, auch aus 0 m Entfernung</td></tr>
+      <tr><td>M3 Götzis</td><td class="mono" style="color:var(--good)">2,039 €</td>
+          <td>erst durch dichtes Grid eingefangen</td></tr>
+      <tr><td>OMV / Shell / Eni</td><td class="mono" style="color:var(--bad)">grösstenteils []</td>
+          <td>nie unter den fünf günstigsten</td></tr>
+    </tbody>
+  </table></div>
+  <p style="margin-top:14px">Die 21 dauerhaft blinden Stationen im Testgebiet verteilen sich so:
+  <strong>Eni&nbsp;7, OMV&nbsp;6, Shell&nbsp;3, BP&nbsp;3</strong>, zwei ohne Marke. Das ist keine
+  Marken-Sperre — es ist reine Preisrang-Logik. Wo eine Shell günstig ist, taucht sie auf; im Rheintal
+  ist sie es nie.</p>
+  <div class="callout">
+    <p><strong>Konsequenz für den Tracker:</strong> Eine lückenlose Preishistorie <em>aller</em>
+    Tankstellen ist über diese API nicht möglich. Eine lückenlose Historie des <em>günstigen
+    Marktsegments</em> ist es — und genau das ist das Segment, an dem man tankt.</p>
+  </div>
+  <h3 style="margin-top:22px">Von der E-Control selbst bestätigt</h3>
+  <p>Die gemessene Grenze steht wörtlich in der offiziellen FAQ — meine Messung und die Doku decken
+  sich exakt:</p>
+  <blockquote style="border-left:3px solid var(--line);margin:0 0 12px;padding:2px 0 2px 16px;color:var(--ink2);
+  font-size:15px">„bei der Suche mit Adresseingabe und bei der Bezirksabfrage werden […] die Preise der
+  <strong>fünf günstigsten</strong> Tankstellen angezeigt, bei der Bundeslandabfrage […] die
+  <strong>zehn günstigsten</strong>“</blockquote>
+  <p class="cap">Dass eine Bezirksabfrage manchmal acht Stationen liefert, ist kein Widerspruch: Bei
+  Preisgleichstand auf Rang fünf kommen alle Gleichstand-Stationen mit.</p>
+</section>
+
+<section>
+  <div class="rule"><span class="n">05</span><h2>Was nicht existiert</h2></div>
+  <p>Systematisch abgeklopft, damit die Frage erledigt ist:</p>
+  <div class="scroll"><table>
+    <thead><tr><th>Vermutung</th><th>Prüfung</th><th>Ergebnis</th></tr></thead>
+    <tbody>
+      <tr><td>weitere API-Doku-Gruppen</td><td><code>api-docs?group=…</code>, 12 Varianten</td>
+        <td><span class="verdict v-no">nur public-api</span></td></tr>
+      <tr><td>versteckter Frontend-Endpoint</td><td>Angular-Bundle entpackt</td>
+        <td><span class="verdict v-no">dieselben zwei</span></td></tr>
+      <tr><td>Gemeinde-Ebene bei by-region</td><td><code>type=GEM|PLZ|…</code></td>
+        <td><span class="verdict v-no">HTTP 400</span></td></tr>
+      <tr><td>Station per ID abfragen</td><td><code>/gas-stations/{id}</code></td>
+        <td><span class="verdict v-no">401</span></td></tr>
+      <tr><td>historische Zeitreihen</td><td>data.gv.at, BWB-Tracker</td>
+        <td><span class="verdict v-no">Mikrodaten nicht geteilt</span></td></tr>
+      <tr><td>Gemeindeliste mit Koordinaten</td><td><code>/regions/units?type=GEM</code></td>
+        <td><span class="verdict v-use">2231 Stück</span></td></tr>
+    </tbody>
+  </table></div>
+  <div class="callout"><p><strong>Der eine Fund:</strong> <code>/regions/units</code> ist als
+  Regionsliste dokumentiert, liefert aber eine dritte, unerwähnte Ebene — alle 2231 österreichischen
+  Gemeinden mit amtlichen Koordinaten. Damit braucht der Sammler kein handgepflegtes Koordinatenraster
+  mehr, sondern trifft von selbst dorthin, wo Tankstellen tatsächlich stehen.</p></div>
+  <div class="scroll" style="margin-top:16px"><table>
+    <thead><tr><th>Strategie</th><th>Abfragen</th><th>Stationen</th><th>mit Preis</th><th>Dauer</th></tr></thead>
+    <tbody>
+      <tr><td>Koordinatenraster 2,2 km</td><td class="num">148</td><td class="num">77</td>
+        <td class="num">55</td><td class="num">2:00</td></tr>
+      <tr><td><strong>Gemeindezentren</strong></td><td class="num">45</td><td class="num">92</td>
+        <td class="num" style="color:var(--good);font-weight:600">60</td><td class="num">0:31</td></tr>
+      <tr><td>+ stationszentriert</td><td class="num">137</td><td class="num">103</td>
+        <td class="num" style="color:var(--good);font-weight:600">73</td><td class="num">1:38</td></tr>
+    </tbody>
+  </table></div>
+  <p class="cap">Ein Drittel der Abfragen, mehr Ergebnisse, und ohne Bounding-Box überall in
+  Österreich einsetzbar. Die teuren Marken bleiben trotzdem unsichtbar — der Cap ist eine harte
+  Decke, keine Frage der Abfragedichte.</p>
+</section>
+
+<section>
+  <div class="rule"><span class="n">06</span><h2>Momentaufnahme</h2></div>
+  <p>Echte Messwerte vom 25.08.2026, 10:03. Sortiert nach dem, was eine Tankfüllung
+  <em>tatsächlich</em> kostet — Spritpreis plus der Sprit, den der Umweg selbst verbraucht.</p>
+
+  <div class="panel">
+    <div class="ctrl">
+      <div class="seg" id="seg" role="group" aria-label="Spritsorte"></div>
+      <div class="fld"><label for="li">Liter</label><input id="li" type="number" value="45" min="1" step="1"></div>
+      <div class="fld"><label for="co">l / 100 km</label><input id="co" type="number" value="6.5" min="1" step="0.1"></div>
+      <div class="fld"><label for="de">Umweg &times;</label><input id="de" type="number" value="2" min="0" step="0.5"></div>
+    </div>
+    <div class="best" id="best"></div>
+    <div class="cols" style="gap:22px">
+      <div class="scroll"><table>
+        <thead><tr><th>Echtkosten</th><th>€/l</th><th>km</th><th>Station</th></tr></thead>
+        <tbody id="rows"></tbody></table>
+        <div class="cap" id="cap"></div>
+      </div>
+      <div><div id="map"></div>
+        <div class="cap"><span class="tier" style="background:var(--good)"></span>günstig
+        <span class="tier" style="background:var(--mid);margin-left:10px"></span>mittel
+        <span class="tier" style="background:var(--bad);margin-left:10px"></span>teuer &middot;
+        Ring = Altach. Punktgröße zeigt den Preisvorteil.</div></div>
+    </div>
+  </div>
+  <p class="cap">Diese Seite zeigt einen eingefrorenen Stand. Die Live-Ansicht läuft lokal
+  unter <code>python3 tanken.py serve</code>.</p>
+</section>
+
+<section>
+  <div class="rule"><span class="n">07</span><h2>Der Zeitpunkt</h2></div>
+  <div class="cols">
+    <div>
+      <p>In Österreich dürfen Spritpreise <strong>nur einmal täglich um 12:00 Uhr erhöht</strong> werden.
+      Senkungen sind jederzeit erlaubt. Daraus folgt ein Sägezahn: Sprung nach oben um Mittag,
+      danach langsames Abbröckeln bis zum nächsten Mittag.</p>
+      <p>Entscheidend ist der zweite Teil der Vorschrift, den die FAQ nennt: Preiserhöhungen müssen
+      <strong>bis 12:10</strong> gemeldet sein, alle übrigen Änderungen binnen <strong>30 Minuten</strong>.
+      Damit ist nicht nur der Zeitpunkt des Sprungs bekannt, sondern auch die sinnvolle Abtastrate —
+      häufiger als halbstündlich zu fragen kann per Definition nichts Neues liefern.</p>
+      <p>Die naheliegende Regel lautet also: <strong>vormittags tanken, kurz vor zwölf.</strong>
+      Nur ist das eine Regel über den Markt insgesamt, nicht über die vier Tankstellen, an denen
+      du tatsächlich vorbeikommst.</p>
+      <p>Deshalb behauptet das Tool das nicht einfach, sondern misst es nach: Es rechnet aus den eigenen
+      Messreihen die durchschnittliche Abweichung je Stunde und je Wochentag vom jeweiligen Mittel —
+      und zeigt die Prognose erst an, wenn die Datenbasis sie trägt.</p>
+    </div>
+    <div>
+      <h3>Ab wann die Prognose etwas wert ist</h3>
+      <div class="scroll"><table>
+        <thead><tr><th>Laufzeit</th><th>Aussage</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">&lt; 3 Tage</td><td>nur Momentaufnahme</td></tr>
+          <tr><td class="mono">3–14 Tage</td><td>erste Tendenz, nicht belastbar</td></tr>
+          <tr><td class="mono">14–28 Tage</td><td>brauchbare Tendenz</td></tr>
+          <tr><td class="mono">&gt; 28 Tage</td><td>belastbar, inkl. Wochenprofil</td></tr>
+        </tbody>
+      </table></div>
+      <p class="cap" style="margin-top:12px">Das Tool blendet die Zeitempfehlung unterhalb von 14 Tagen
+      bewusst aus, statt eine Scheingenauigkeit zu zeigen.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="rule"><span class="n">08</span><h2>Betrieb</h2></div>
+  <pre>python3 tanken.py collect          # Gemeindezentren, ~30 s
+python3 tanken.py collect --deep   # zusätzlich stationszentriert, ~100 s
+python3 tanken.py watch            # Abtastplan (19 Läufe/Tag)
+python3 tanken.py stats            # Auswertung im Terminal
+python3 tanken.py serve            # Live-UI auf 127.0.0.1:842</pre>
+  <p>Der Abtastplan folgt den Meldefristen statt einem festen Takt: stündlich von 06:00 bis 22:00,
+  der Mittagssprung eng eingefasst durch je einen Lauf um <strong>11:55 und 12:15</strong>, nachts Ruhe.
+  Um 03:00 läuft einmal täglich der Tiefenlauf, der nach neuen Stationen sucht.</p>
+  <p>Im Dauerbetrieb läuft das Ganze als einzelner Container auf dem Heimserver — ein Prozess,
+  der den Sammler als Thread und die Weboberfläche zugleich bedient. <code>TZ=Europe/Vienna</code>
+  ist dort Pflicht und nicht Komfort: Mit festem UTC-Offset liefe der 11:55-Lauf ab der
+  Winterzeitumstellung real um 10:55 und würde den Mittagssprung verfehlen.</p>
+  <p>Preise werden nur bei <em>Änderung</em> geschrieben — die Datenbank bleibt auch nach Monaten klein.
+  Die Region wird über <code>home</code> und <code>radius_km</code> gesetzt; die Abfragepunkte ergeben
+  sich daraus von selbst, überall in Österreich.</p>
+</section>
+</div>
+
+<script>
+const DATA={"generated":"2026-08-25T12:23:41+02:00","home":{"name":"Altach","lat":47.354655,"lon":9.651645},"fuels":{"DIE":{"stations":[{"station_id":42228,"name":"Johann Meusburger GmbH","city":"Lingenau","address":"Zeihenbühl 396","amount":1.99,"distance_km":21.85,"lat":47.4491221,"lon":9.90622,"open_247":1,"unattended":1},{"station_id":108726,"name":"Wema  GmbH","city":"Lingenau","address":"Zeihenbühl 435","amount":1.99,"distance_km":21.77,"lat":47.4495768,"lon":9.9046295,"open_247":1,"unattended":1},{"station_id":34521,"name":"www.voegel-trans.at","city":"Doren","address":"Säge 156","amount":1.992,"distance_km":21.41,"lat":47.49052893,"lon":9.85336304,"open_247":1,"unattended":0},{"station_id":1474469,"name":"Diskont Tankstelle","city":"Rankweil","address":"St. Anna Weg 23 (am HOFER Parkplatz)","amount":2.007,"distance_km":9.72,"lat":47.2724,"lon":9.60797,"open_247":1,"unattended":0},{"station_id":158054,"name":"DISK Gutmann","city":"Feldkirch","address":"Königshofstraße 14","amount":2.009,"distance_km":10.52,"lat":47.263346,"lon":9.615192,"open_247":0,"unattended":1},{"station_id":1354846,"name":"JET TANKSTELLE","city":"FELDKIRCH","address":"REICHSSTRASSE 133 A","amount":2.009,"distance_km":12.33,"lat":47.247387,"lon":9.610381,"open_247":0,"unattended":0},{"station_id":1473948,"name":"Diskont Tankstelle","city":"Hohenems","address":"Barnabas-Fink-Strasse 1 (am HOFER Parkplatz)","amount":2.014,"distance_km":1.95,"lat":47.3666,"lon":9.67055,"open_247":1,"unattended":0},{"station_id":1474471,"name":"Diskont Tankstelle","city":"Koblach","address":"Bundesstrasse 6 (am HOFER Parkplatz)","amount":2.014,"distance_km":3.62,"lat":47.32574,"lon":9.62964,"open_247":1,"unattended":0},{"station_id":5107,"name":"ESW Dieselkraftstoff","city":"Hohenems","address":"Kaulbachstraße 6","amount":2.016,"distance_km":2.41,"lat":47.363987,"lon":9.680457,"open_247":1,"unattended":1},{"station_id":5110,"name":"ESW Dieselkraftstoff","city":"Höchst","address":"Hauptstraße 38","amount":2.016,"distance_km":11.69,"lat":47.459666,"lon":9.644945,"open_247":1,"unattended":1},{"station_id":4167,"name":"DISK Gutmann","city":"Altach","address":"Bauern 6","amount":2.019,"distance_km":0.77,"lat":47.35295,"lon":9.6616,"open_247":0,"unattended":1},{"station_id":36006,"name":"DISK Gutmann","city":"Götzis","address":"Im Buch 50","amount":2.019,"distance_km":1.3,"lat":47.343134,"lon":9.65439,"open_247":0,"unattended":1},{"station_id":450530,"name":"Shell Austria","city":"FELDKIRCH-LEVIS","address":"REICHSSTRASSE 137","amount":2.019,"distance_km":12.4,"lat":47.2468,"lon":9.60984,"open_247":1,"unattended":0},{"station_id":621287,"name":"OIL! Tankstelle","city":"Hohenems","address":"Furchgasse 2A","amount":2.019,"distance_km":4.94,"lat":47.3801,"lon":9.70549,"open_247":0,"unattended":0},{"station_id":1354711,"name":"JET TANKSTELLE","city":"GÖTZIS","address":"LUSTENAUERSTRASSE 2","amount":2.019,"distance_km":1.17,"lat":47.344695,"lon":9.656679,"open_247":0,"unattended":0},{"station_id":1354821,"name":"JET TANKSTELLE","city":"HOHENEMS","address":"KAISER FRANZ JOSEF STRASSE 40","amount":2.019,"distance_km":2.39,"lat":47.35725,"lon":9.68315,"open_247":0,"unattended":0},{"station_id":1354876,"name":"OMV - Feldkirch Königshofstraße 61","city":"Feldkirch","address":"Königshofstrasse 61","amount":2.019,"distance_km":10.04,"lat":47.26779,"lon":9.61507,"open_247":0,"unattended":0},{"station_id":1486365,"name":"M3 Rankweil mit SB Waschanlage","city":"Rankweil","address":"Walgaustraße 5A","amount":2.019,"distance_km":9.59,"lat":47.26861789463537,"lon":9.643664053851,"open_247":0,"unattended":0},{"station_id":4175,"name":"DISK Gutmann","city":"Satteins","address":"Alte Schlinserstraße 2","amount":2.023,"distance_km":14.85,"lat":47.22179,"lon":9.67132,"open_247":0,"unattended":0},{"station_id":7620,"name":"Loacker Tours GmbH (Diesel + Super95)","city":"Koblach","address":"Bundesstraße 17","amount":2.023,"distance_km":3.86,"lat":47.323657,"lon":9.6285154,"open_247":1,"unattended":1},{"station_id":1168600,"name":"LMEnergy Express","city":"Bürs","address":"Almteilweg 1","amount":2.024,"distance_km":25.58,"lat":47.151467,"lon":9.810635,"open_247":0,"unattended":0},{"station_id":1474470,"name":"Diskont Tankstelle","city":"Buers","address":"Herrenau 2 (am HOFER Parkplatz)","amount":2.024,"distance_km":25.56,"lat":47.15298,"lon":9.81419,"open_247":1,"unattended":0},{"station_id":36746,"name":"DISK Gutmann","city":"Dornbirn","address":"Arlbergstraße 6","amount":2.028,"distance_km":7.96,"lat":47.399883,"lon":9.733621,"open_247":0,"unattended":0},{"station_id":1354902,"name":"JET TANKSTELLE","city":"DORNBIRN","address":"SCHWEFEL 44 A","amount":2.028,"distance_km":10.47,"lat":47.426673,"lon":9.741176,"open_247":0,"unattended":0},{"station_id":1354948,"name":"JET TANKSTELLE","city":"DORNBIRN","address":"WALLENMAHD 22","amount":2.028,"distance_km":7.58,"lat":47.39649,"lon":9.731134,"open_247":0,"unattended":0},{"station_id":1474348,"name":"JP Mennel ","city":"Lingenau","address":"Hof 331 a","amount":2.028,"distance_km":23.03,"lat":47.449939790342796,"lon":9.923389632585549,"open_247":1,"unattended":0},{"station_id":7598,"name":"TK Tankstellen GmbH","city":"Koblach","address":"Straßenhäuser 70","amount":2.029,"distance_km":5.55,"lat":47.3096459,"lon":9.619797,"open_247":1,"unattended":1},{"station_id":7610,"name":"TK Tankstellen GmbH","city":"Feldkirch","address":"Studa 3a","amount":2.029,"distance_km":10.17,"lat":47.2690136,"lon":9.6042398,"open_247":1,"unattended":1},{"station_id":35624,"name":"BP","city":"Feldkirch-Gisingen","address":"Haemmerlestrasse 99 ","amount":2.029,"distance_km":13.39,"lat":47.2413165,"lon":9.5914922,"open_247":0,"unattended":0},{"station_id":450354,"name":"Shell Austria","city":"TISIS","address":"LIECHTENSTEINERSTR. 66","amount":2.029,"distance_km":14.62,"lat":47.23082,"lon":9.58641,"open_247":0,"unattended":0},{"station_id":1354748,"name":"JET TANKSTELLE","city":"BUERS","address":"HERRENAU 1","amount":2.029,"distance_km":25.63,"lat":47.152278,"lon":9.814175,"open_247":0,"unattended":0},{"station_id":1474105,"name":"eni","city":"Rankweil","address":"Langgasse 118a","amount":2.029,"distance_km":9.56,"lat":47.27182,"lon":9.61785,"open_247":0,"unattended":0},{"station_id":1475191,"name":"DISK Gutmann","city":"Ludesch","address":"Walgaustraße 32","amount":2.029,"distance_km":20.34,"lat":47.19289,"lon":9.77761,"open_247":0,"unattended":0},{"station_id":1486368,"name":"M3 Klaus","city":"Klaus","address":"Treietstraße 25","amount":2.029,"distance_km":5.61,"lat":47.30430392473,"lon":9.647535225531,"open_247":0,"unattended":0},{"station_id":1487152,"name":"M3 Götzis mit Autowaschanlage","city":"Götzis","address":"Dr.-Alfons-Heinzle-Strasse 44","amount":2.029,"distance_km":2.78,"lat":47.331694121,"lon":9.6369455267,"open_247":0,"unattended":0},{"station_id":40426,"name":"SCHWÄRZLER","city":"Lingenau","address":"Zeihenbühl 422","amount":2.03,"distance_km":21.76,"lat":47.4491533,"lon":9.9048504,"open_247":1,"unattended":1},{"station_id":1467380,"name":"AVANTI - Dornbirn Lustenauer Straße 24","city":"Dornbirn","address":"Lustenauer Strasse 24","amount":2.031,"distance_km":8.54,"lat":47.40698,"lon":9.73476,"open_247":0,"unattended":0},{"station_id":4172,"name":"DISK Gutmann","city":"Dalaas","address":"Klostertalerstraße 100","amount":2.034,"distance_km":37.07,"lat":47.12337,"lon":10.00529,"open_247":0,"unattended":1},{"station_id":4168,"name":"Eni Gutmann","city":"Bludenz","address":"Hermann Sanderstraße 10","amount":2.039,"distance_km":25.69,"lat":47.152913,"lon":9.817642,"open_247":0,"unattended":0},{"station_id":7859,"name":"KOBRAS  ...... siehe weitere Treibstoffe >","city":"Lingenau, ","address":"Hof 270a","amount":2.039,"distance_km":23.18,"lat":47.4508201,"lon":9.9248451,"open_247":0,"unattended":0},{"station_id":35736,"name":"BP","city":"Rankweil","address":"Stiegstrasse 63 ","amount":2.039,"distance_km":8.34,"lat":47.2796507,"lon":9.6496174,"open_247":0,"unattended":0},{"station_id":1354853,"name":"OMV - Wolfurt Dornbirner Straße 22","city":"Wolfurt","address":"Dornbirner Strasse 22","amount":2.039,"distance_km":13.52,"lat":47.4541,"lon":9.75495,"open_247":0,"unattended":0},{"station_id":1354857,"name":"OMV - Dornbirn Schwefel 53","city":"Dornbirn","address":"Schwefel 53","amount":2.039,"distance_km":10.52,"lat":47.42804,"lon":9.73995,"open_247":1,"unattended":0},{"station_id":1354859,"name":"OMV - Dornbirn Wallenmahd 1","city":"Dornbirn","address":"Wallenmahd 1","amount":2.039,"distance_km":7.57,"lat":47.39618,"lon":9.73126,"open_247":0,"unattended":0},{"station_id":1474107,"name":"eni","city":"Dornbirn","address":"Schwefel 70a","amount":2.039,"distance_km":10.67,"lat":47.42974,"lon":9.73995,"open_247":0,"unattended":0},{"station_id":450004,"name":"Shell Austria","city":"DORNBIRN-SCHWEFEL","address":"SCHWEFEL 40","amount":2.049,"distance_km":10.39,"lat":47.4256,"lon":9.7414,"open_247":0,"unattended":0},{"station_id":1354872,"name":"AVANTI - Lustenau Bahnhofstraße 8","city":"Lustenau","address":"Bahnhofstrasse 8","amount":2.054,"distance_km":9.37,"lat":47.43888,"lon":9.65664,"open_247":1,"unattended":0},{"station_id":35578,"name":"BP","city":"Hohenems","address":"Lustenauer Strasse 112a ","amount":2.059,"distance_km":2.88,"lat":47.373695,"lon":9.677582,"open_247":1,"unattended":0},{"station_id":414542,"name":"Shell Austria","city":"NUEZIDERS","address":"BUNDESSTRASSE 3","amount":2.059,"distance_km":23.68,"lat":47.16535,"lon":9.7953,"open_247":0,"unattended":0},{"station_id":1354777,"name":"JET TANKSTELLE","city":"LUSTENAU","address":"GRINDELSTRASSE 16","amount":2.059,"distance_km":7.24,"lat":47.419549,"lon":9.659337,"open_247":0,"unattended":0},{"station_id":1354882,"name":"AVANTI - Hard Hofsteigstraße 85","city":"Hard","address":"Hofsteigstrasse 85","amount":2.062,"distance_km":15.59,"lat":47.49046,"lon":9.70295,"open_247":0,"unattended":0},{"station_id":1354809,"name":"JET TANKSTELLE","city":"HARD","address":"RHEINSTRASSE 99","amount":2.067,"distance_km":13.83,"lat":47.47757,"lon":9.679413,"open_247":0,"unattended":0},{"station_id":1469666,"name":"BayWa Tankstelle","city":"Lauterach","address":"Scheibenstraße 2","amount":2.068,"distance_km":13.33,"lat":47.46296,"lon":9.72747,"open_247":1,"unattended":1},{"station_id":35651,"name":"BP","city":"Lustenau","address":"Reichshofstrasse ","amount":2.069,"distance_km":7.75,"lat":47.424342,"lon":9.651639,"open_247":0,"unattended":0},{"station_id":1354851,"name":"OMV - Lustenau Hagstraße 27","city":"Lustenau","address":"Hagstrasse 27","amount":2.069,"distance_km":10.58,"lat":47.44937,"lon":9.66475,"open_247":0,"unattended":0},{"station_id":1354868,"name":"OMV - Alberschwende Hof 978","city":"Alberschwende","address":"Hof 978","amount":2.069,"distance_km":17.03,"lat":47.45076,"lon":9.82779,"open_247":0,"unattended":0},{"station_id":1354878,"name":"OMV - Lustenau Grindlstraße 14","city":"Lustenau","address":"Grindlstrasse 14","amount":2.069,"distance_km":7.29,"lat":47.42005,"lon":9.65871,"open_247":0,"unattended":0},{"station_id":1474110,"name":"eni","city":"Lustenau","address":"Hohenemser Strasse 1","amount":2.069,"distance_km":7.2,"lat":47.419113,"lon":9.660987,"open_247":1,"unattended":0},{"station_id":427015,"name":"Shell Austria","city":"DORNBIRN","address":"LUSTENAUERSTRASSE 86","amount":2.078,"distance_km":7.97,"lat":47.41172,"lon":9.71573,"open_247":1,"unattended":0},{"station_id":4051,"name":"ENI Gutmann","city":"Schwarzach","address":"Gutenberg Straße 6","amount":2.079,"distance_km":12.25,"lat":47.43859,"lon":9.757077,"open_247":0,"unattended":0},{"station_id":30243,"name":"BP","city":"Dornbirn","address":"Lustenauerstrasse 92","amount":2.079,"distance_km":7.99,"lat":47.41248,"lon":9.7145355,"open_247":0,"unattended":0},{"station_id":446943,"name":"Shell Austria","city":"HOECHST","address":"HAUPTSTR 32","amount":2.079,"distance_km":11.65,"lat":47.45928,"lon":9.64407,"open_247":0,"unattended":0},{"station_id":1474167,"name":"eni","city":"Dornbirn","address":"Lustenauerstrasse 52","amount":2.079,"distance_km":8.09,"lat":47.4104,"lon":9.72079,"open_247":0,"unattended":0},{"station_id":4171,"name":"DISK Gutmann","city":"Lauterach","address":"Bundesstraße 97","amount":2.083,"distance_km":14.1,"lat":47.47016,"lon":9.72884,"open_247":0,"unattended":0},{"station_id":1117,"name":"Wälderhaus","city":"Langenegg","address":"Gfäll 134","amount":2.09,"distance_km":22.85,"lat":47.472489,"lon":9.900355,"open_247":1,"unattended":1},{"station_id":1354870,"name":"OMV - Hard Rheinstraße 24","city":"Hard","address":"Rheinstrasse 24","amount":2.099,"distance_km":15.21,"lat":47.48752,"lon":9.69962,"open_247":0,"unattended":0},{"station_id":7727,"name":"Geist Transporte","city":"Sulzberg","address":"Widum 235","amount":2.119,"distance_km":26.76,"lat":47.5205385,"lon":9.9094319,"open_247":0,"unattended":0},{"station_id":7730,"name":"Geist Transporte","city":"Sulzberg","address":"Fahl 125","amount":2.119,"distance_km":23.94,"lat":47.514998,"lon":9.86411,"open_247":1,"unattended":0},{"station_id":33319,"name":"Shell","city":"Langen","address":"Fischanger 161","amount":2.119,"distance_km":22.99,"lat":47.5155039,"lon":9.8437537,"open_247":0,"unattended":0},{"station_id":33478,"name":"Böhler`s Tankstelle","city":"Langen bei Bregenz","address":"Reicharten 617","amount":2.119,"distance_km":21.16,"lat":47.505693,"lon":9.822679,"open_247":0,"unattended":0},{"station_id":1129869,"name":"DISKONT","city":"Hard","address":"Rauhholzstraße 29","amount":2.129,"distance_km":15.3,"lat":47.487913,"lon":9.702447,"open_247":0,"unattended":1},{"station_id":1474106,"name":"eni","city":"Bregenz-Rieden","address":"Arlbergstrasse 56","amount":2.129,"distance_km":16.81,"lat":47.495268,"lon":9.733599,"open_247":0,"unattended":0},{"station_id":449657,"name":"Shell Austria","city":"BREGENZ","address":"RHEINSTRASSE 88","amount":2.139,"distance_km":16.08,"lat":47.49363,"lon":9.71095,"open_247":0,"unattended":0},{"station_id":1474108,"name":"eni","city":"Bregenz-Hard","address":"Rheinstrasse 20","amount":2.139,"distance_km":15.37,"lat":47.488611,"lon":9.702186,"open_247":1,"unattended":0},{"station_id":1474169,"name":"eni","city":"Bregenz","address":"Rheinstrasse 4","amount":2.139,"distance_km":17.11,"lat":47.4985,"lon":9.73258,"open_247":1,"unattended":0},{"station_id":1474173,"name":"eni","city":"Wolfurt","address":"Achstrasse 39","amount":2.149,"distance_km":15.8,"lat":47.48154,"lon":9.74613,"open_247":0,"unattended":0},{"station_id":4118,"name":"TK Tankstellen GmbH","city":"Hörbranz","address":"Ziegelbachstrasse 101","amount":2.169,"distance_km":22.27,"lat":47.5432157,"lon":9.7513484,"open_247":0,"unattended":1},{"station_id":33764,"name":"Deuring","city":"Hörbranz","address":"Seestrasse 10","amount":2.169,"distance_km":21.06,"lat":47.534922,"lon":9.7377447,"open_247":1,"unattended":0},{"station_id":34747,"name":"Schindele, Hörbranz","city":"Hörbranz","address":"Seestr. 14a","amount":2.169,"distance_km":20.93,"lat":47.5333189,"lon":9.7393838,"open_247":1,"unattended":0},{"station_id":35735,"name":"BP","city":"Bregenz/Lochau","address":"Bregenzerstr. 63 ","amount":2.169,"distance_km":19.0,"lat":47.5111513,"lon":9.7530777,"open_247":1,"unattended":0},{"station_id":1354880,"name":"OMV - Lochau Hofriedenstraße 17","city":"Lochau","address":"Hofriedenstrasse 17","amount":2.169,"distance_km":21.4,"lat":47.5347,"lon":9.75204,"open_247":0,"unattended":0}]},"SUP":{"stations":[{"station_id":1474469,"name":"Diskont Tankstelle","city":"Rankweil","address":"St. Anna Weg 23 (am HOFER Parkplatz)","amount":1.737,"distance_km":9.72,"lat":47.2724,"lon":9.60797,"open_247":1,"unattended":0},{"station_id":158054,"name":"DISK Gutmann","city":"Feldkirch","address":"Königshofstraße 14","amount":1.739,"distance_km":10.52,"lat":47.263346,"lon":9.615192,"open_247":0,"unattended":1},{"station_id":1354846,"name":"JET TANKSTELLE","city":"FELDKIRCH","address":"REICHSSTRASSE 133 A","amount":1.739,"distance_km":12.33,"lat":47.247387,"lon":9.610381,"open_247":0,"unattended":0},{"station_id":1473948,"name":"Diskont Tankstelle","city":"Hohenems","address":"Barnabas-Fink-Strasse 1 (am HOFER Parkplatz)","amount":1.744,"distance_km":1.95,"lat":47.3666,"lon":9.67055,"open_247":1,"unattended":0},{"station_id":1474471,"name":"Diskont Tankstelle","city":"Koblach","address":"Bundesstrasse 6 (am HOFER Parkplatz)","amount":1.748,"distance_km":3.62,"lat":47.32574,"lon":9.62964,"open_247":1,"unattended":0},{"station_id":4167,"name":"DISK Gutmann","city":"Altach","address":"Bauern 6","amount":1.749,"distance_km":0.77,"lat":47.35295,"lon":9.6616,"open_247":0,"unattended":1},{"station_id":36006,"name":"DISK Gutmann","city":"Götzis","address":"Im Buch 50","amount":1.749,"distance_km":1.3,"lat":47.343134,"lon":9.65439,"open_247":0,"unattended":1},{"station_id":450354,"name":"Shell Austria","city":"TISIS","address":"LIECHTENSTEINERSTR. 66","amount":1.749,"distance_km":14.62,"lat":47.23082,"lon":9.58641,"open_247":0,"unattended":0},{"station_id":450530,"name":"Shell Austria","city":"FELDKIRCH-LEVIS","address":"REICHSSTRASSE 137","amount":1.749,"distance_km":12.4,"lat":47.2468,"lon":9.60984,"open_247":1,"unattended":0},{"station_id":621287,"name":"OIL! Tankstelle","city":"Hohenems","address":"Furchgasse 2A","amount":1.749,"distance_km":4.94,"lat":47.3801,"lon":9.70549,"open_247":0,"unattended":0},{"station_id":1354711,"name":"JET TANKSTELLE","city":"GÖTZIS","address":"LUSTENAUERSTRASSE 2","amount":1.749,"distance_km":1.17,"lat":47.344695,"lon":9.656679,"open_247":0,"unattended":0},{"station_id":1354821,"name":"JET TANKSTELLE","city":"HOHENEMS","address":"KAISER FRANZ JOSEF STRASSE 40","amount":1.749,"distance_km":2.39,"lat":47.35725,"lon":9.68315,"open_247":0,"unattended":0},{"station_id":1354876,"name":"OMV - Feldkirch Königshofstraße 61","city":"Feldkirch","address":"Königshofstrasse 61","amount":1.749,"distance_km":10.04,"lat":47.26779,"lon":9.61507,"open_247":0,"unattended":0},{"station_id":1486365,"name":"M3 Rankweil mit SB Waschanlage","city":"Rankweil","address":"Walgaustraße 5A","amount":1.749,"distance_km":9.59,"lat":47.26861789463537,"lon":9.643664053851,"open_247":0,"unattended":0},{"station_id":4175,"name":"DISK Gutmann","city":"Satteins","address":"Alte Schlinserstraße 2","amount":1.753,"distance_km":14.85,"lat":47.22179,"lon":9.67132,"open_247":0,"unattended":0},{"station_id":7620,"name":"Loacker Tours GmbH (Diesel + Super95)","city":"Koblach","address":"Bundesstraße 17","amount":1.753,"distance_km":3.86,"lat":47.323657,"lon":9.6285154,"open_247":1,"unattended":1},{"station_id":1467380,"name":"AVANTI - Dornbirn Lustenauer Straße 24","city":"Dornbirn","address":"Lustenauer Strasse 24","amount":1.753,"distance_km":8.54,"lat":47.40698,"lon":9.73476,"open_247":0,"unattended":0},{"station_id":1168600,"name":"LMEnergy Express","city":"Bürs","address":"Almteilweg 1","amount":1.754,"distance_km":25.58,"lat":47.151467,"lon":9.810635,"open_247":0,"unattended":0},{"station_id":1474470,"name":"Diskont Tankstelle","city":"Buers","address":"Herrenau 2 (am HOFER Parkplatz)","amount":1.754,"distance_km":25.56,"lat":47.15298,"lon":9.81419,"open_247":1,"unattended":0},{"station_id":1354902,"name":"JET TANKSTELLE","city":"DORNBIRN","address":"SCHWEFEL 44 A","amount":1.757,"distance_km":10.47,"lat":47.426673,"lon":9.741176,"open_247":0,"unattended":0},{"station_id":1354948,"name":"JET TANKSTELLE","city":"DORNBIRN","address":"WALLENMAHD 22","amount":1.757,"distance_km":7.58,"lat":47.39649,"lon":9.731134,"open_247":0,"unattended":0},{"station_id":36746,"name":"DISK Gutmann","city":"Dornbirn","address":"Arlbergstraße 6","amount":1.758,"distance_km":7.96,"lat":47.399883,"lon":9.733621,"open_247":0,"unattended":0},{"station_id":7610,"name":"TK Tankstellen GmbH","city":"Feldkirch","address":"Studa 3a","amount":1.759,"distance_km":10.17,"lat":47.2690136,"lon":9.6042398,"open_247":1,"unattended":1},{"station_id":35624,"name":"BP","city":"Feldkirch-Gisingen","address":"Haemmerlestrasse 99 ","amount":1.759,"distance_km":13.39,"lat":47.2413165,"lon":9.5914922,"open_247":0,"unattended":0},{"station_id":1354748,"name":"JET TANKSTELLE","city":"BUERS","address":"HERRENAU 1","amount":1.759,"distance_km":25.63,"lat":47.152278,"lon":9.814175,"open_247":0,"unattended":0},{"station_id":1474105,"name":"eni","city":"Rankweil","address":"Langgasse 118a","amount":1.759,"distance_km":9.56,"lat":47.27182,"lon":9.61785,"open_247":0,"unattended":0},{"station_id":1475191,"name":"DISK Gutmann","city":"Ludesch","address":"Walgaustraße 32","amount":1.759,"distance_km":20.34,"lat":47.19289,"lon":9.77761,"open_247":0,"unattended":0},{"station_id":1486368,"name":"M3 Klaus","city":"Klaus","address":"Treietstraße 25","amount":1.759,"distance_km":5.61,"lat":47.30430392473,"lon":9.647535225531,"open_247":0,"unattended":0},{"station_id":4172,"name":"DISK Gutmann","city":"Dalaas","address":"Klostertalerstraße 100","amount":1.764,"distance_km":37.07,"lat":47.12337,"lon":10.00529,"open_247":0,"unattended":1},{"station_id":4168,"name":"Eni Gutmann","city":"Bludenz","address":"Hermann Sanderstraße 10","amount":1.769,"distance_km":25.69,"lat":47.152913,"lon":9.817642,"open_247":0,"unattended":0},{"station_id":35736,"name":"BP","city":"Rankweil","address":"Stiegstrasse 63 ","amount":1.769,"distance_km":8.34,"lat":47.2796507,"lon":9.6496174,"open_247":0,"unattended":0},{"station_id":1354853,"name":"OMV - Wolfurt Dornbirner Straße 22","city":"Wolfurt","address":"Dornbirner Strasse 22","amount":1.769,"distance_km":13.52,"lat":47.4541,"lon":9.75495,"open_247":0,"unattended":0},{"station_id":1354857,"name":"OMV - Dornbirn Schwefel 53","city":"Dornbirn","address":"Schwefel 53","amount":1.769,"distance_km":10.52,"lat":47.42804,"lon":9.73995,"open_247":1,"unattended":0},{"station_id":1354859,"name":"OMV - Dornbirn Wallenmahd 1","city":"Dornbirn","address":"Wallenmahd 1","amount":1.769,"distance_km":7.57,"lat":47.39618,"lon":9.73126,"open_247":0,"unattended":0},{"station_id":1474107,"name":"eni","city":"Dornbirn","address":"Schwefel 70a","amount":1.769,"distance_km":10.67,"lat":47.42974,"lon":9.73995,"open_247":0,"unattended":0},{"station_id":1487152,"name":"M3 Götzis mit Autowaschanlage","city":"Götzis","address":"Dr.-Alfons-Heinzle-Strasse 44","amount":1.769,"distance_km":2.78,"lat":47.331694121,"lon":9.6369455267,"open_247":0,"unattended":0},{"station_id":1469666,"name":"BayWa Tankstelle","city":"Lauterach","address":"Scheibenstraße 2","amount":1.778,"distance_km":13.33,"lat":47.46296,"lon":9.72747,"open_247":1,"unattended":1},{"station_id":450004,"name":"Shell Austria","city":"DORNBIRN-SCHWEFEL","address":"SCHWEFEL 40","amount":1.779,"distance_km":10.39,"lat":47.4256,"lon":9.7414,"open_247":0,"unattended":0},{"station_id":1354872,"name":"AVANTI - Lustenau Bahnhofstraße 8","city":"Lustenau","address":"Bahnhofstrasse 8","amount":1.779,"distance_km":9.37,"lat":47.43888,"lon":9.65664,"open_247":1,"unattended":0},{"station_id":427015,"name":"Shell Austria","city":"DORNBIRN","address":"LUSTENAUERSTRASSE 86","amount":1.784,"distance_km":7.97,"lat":47.41172,"lon":9.71573,"open_247":1,"unattended":0},{"station_id":1354777,"name":"JET TANKSTELLE","city":"LUSTENAU","address":"GRINDELSTRASSE 16","amount":1.784,"distance_km":7.24,"lat":47.419549,"lon":9.659337,"open_247":0,"unattended":0},{"station_id":4051,"name":"ENI Gutmann","city":"Schwarzach","address":"Gutenberg Straße 6","amount":1.789,"distance_km":12.25,"lat":47.43859,"lon":9.757077,"open_247":0,"unattended":0},{"station_id":30243,"name":"BP","city":"Dornbirn","address":"Lustenauerstrasse 92","amount":1.789,"distance_km":7.99,"lat":47.41248,"lon":9.7145355,"open_247":0,"unattended":0},{"station_id":35578,"name":"BP","city":"Hohenems","address":"Lustenauer Strasse 112a ","amount":1.789,"distance_km":2.88,"lat":47.373695,"lon":9.677582,"open_247":1,"unattended":0},{"station_id":414542,"name":"Shell Austria","city":"NUEZIDERS","address":"BUNDESSTRASSE 3","amount":1.789,"distance_km":23.68,"lat":47.16535,"lon":9.7953,"open_247":0,"unattended":0},{"station_id":1354878,"name":"OMV - Lustenau Grindlstraße 14","city":"Lustenau","address":"Grindlstrasse 14","amount":1.789,"distance_km":7.29,"lat":47.42005,"lon":9.65871,"open_247":0,"unattended":0},{"station_id":1354882,"name":"AVANTI - Hard Hofsteigstraße 85","city":"Hard","address":"Hofsteigstrasse 85","amount":1.789,"distance_km":15.59,"lat":47.49046,"lon":9.70295,"open_247":0,"unattended":0},{"station_id":1474167,"name":"eni","city":"Dornbirn","address":"Lustenauerstrasse 52","amount":1.789,"distance_km":8.09,"lat":47.4104,"lon":9.72079,"open_247":0,"unattended":0},{"station_id":4171,"name":"DISK Gutmann","city":"Lauterach","address":"Bundesstraße 97","amount":1.793,"distance_km":14.1,"lat":47.47016,"lon":9.72884,"open_247":0,"unattended":0},{"station_id":1354809,"name":"JET TANKSTELLE","city":"HARD","address":"RHEINSTRASSE 99","amount":1.794,"distance_km":13.83,"lat":47.47757,"lon":9.679413,"open_247":0,"unattended":0},{"station_id":35651,"name":"BP","city":"Lustenau","address":"Reichshofstrasse ","amount":1.799,"distance_km":7.75,"lat":47.424342,"lon":9.651639,"open_247":0,"unattended":0},{"station_id":1354851,"name":"OMV - Lustenau Hagstraße 27","city":"Lustenau","address":"Hagstrasse 27","amount":1.799,"distance_km":10.58,"lat":47.44937,"lon":9.66475,"open_247":0,"unattended":0},{"station_id":1354868,"name":"OMV - Alberschwende Hof 978","city":"Alberschwende","address":"Hof 978","amount":1.799,"distance_km":17.03,"lat":47.45076,"lon":9.82779,"open_247":0,"unattended":0},{"station_id":1474110,"name":"eni","city":"Lustenau","address":"Hohenemser Strasse 1","amount":1.799,"distance_km":7.2,"lat":47.419113,"lon":9.660987,"open_247":1,"unattended":0},{"station_id":34590,"name":"Eni Oberscheider Lustenau","city":"Lustenau","address":"Reichsstrasse 16a","amount":1.808,"distance_km":8.41,"lat":47.430313,"lon":9.64951,"open_247":1,"unattended":1},{"station_id":446943,"name":"Shell Austria","city":"HOECHST","address":"HAUPTSTR 32","amount":1.812,"distance_km":11.65,"lat":47.45928,"lon":9.64407,"open_247":0,"unattended":0},{"station_id":1354870,"name":"OMV - Hard Rheinstraße 24","city":"Hard","address":"Rheinstrasse 24","amount":1.819,"distance_km":15.21,"lat":47.48752,"lon":9.69962,"open_247":0,"unattended":0},{"station_id":35627,"name":"BP","city":"Egg Im Bregenzerwald","address":"Bundesstrasse ","amount":1.829,"distance_km":20.29,"lat":47.432516,"lon":9.895364,"open_247":0,"unattended":0},{"station_id":1129869,"name":"DISKONT","city":"Hard","address":"Rauhholzstraße 29","amount":1.839,"distance_km":15.3,"lat":47.487913,"lon":9.702447,"open_247":0,"unattended":1},{"station_id":1474106,"name":"eni","city":"Bregenz-Rieden","address":"Arlbergstrasse 56","amount":1.839,"distance_km":16.81,"lat":47.495268,"lon":9.733599,"open_247":0,"unattended":0},{"station_id":33478,"name":"Böhler`s Tankstelle","city":"Langen bei Bregenz","address":"Reicharten 617","amount":1.849,"distance_km":21.16,"lat":47.505693,"lon":9.822679,"open_247":0,"unattended":0},{"station_id":1354708,"name":"AVANTI - Hittisau Windern 379","city":"Hittisau","address":"Windern 379","amount":1.854,"distance_km":25.56,"lat":47.45811,"lon":9.95489,"open_247":0,"unattended":0},{"station_id":7859,"name":"KOBRAS  ...... siehe weitere Treibstoffe >","city":"Lingenau, ","address":"Hof 270a","amount":1.858,"distance_km":23.18,"lat":47.4508201,"lon":9.9248451,"open_247":0,"unattended":0},{"station_id":4118,"name":"TK Tankstellen GmbH","city":"Hörbranz","address":"Ziegelbachstrasse 101","amount":1.859,"distance_km":22.27,"lat":47.5432157,"lon":9.7513484,"open_247":0,"unattended":1},{"station_id":33764,"name":"Deuring","city":"Hörbranz","address":"Seestrasse 10","amount":1.859,"distance_km":21.06,"lat":47.534922,"lon":9.7377447,"open_247":1,"unattended":0},{"station_id":34747,"name":"Schindele, Hörbranz","city":"Hörbranz","address":"Seestr. 14a","amount":1.859,"distance_km":20.93,"lat":47.5333189,"lon":9.7393838,"open_247":1,"unattended":0},{"station_id":34748,"name":"Schindele, Riefensberg","city":"Riefensberg","address":"Meierhof 126","amount":1.859,"distance_km":27.35,"lat":47.4987605,"lon":9.9462056,"open_247":0,"unattended":0},{"station_id":35735,"name":"BP","city":"Bregenz/Lochau","address":"Bregenzerstr. 63 ","amount":1.859,"distance_km":19.0,"lat":47.5111513,"lon":9.7530777,"open_247":1,"unattended":0},{"station_id":449657,"name":"Shell Austria","city":"BREGENZ","address":"RHEINSTRASSE 88","amount":1.859,"distance_km":16.08,"lat":47.49363,"lon":9.71095,"open_247":0,"unattended":0},{"station_id":1354880,"name":"OMV - Lochau Hofriedenstraße 17","city":"Lochau","address":"Hofriedenstrasse 17","amount":1.859,"distance_km":21.4,"lat":47.5347,"lon":9.75204,"open_247":0,"unattended":0},{"station_id":1474108,"name":"eni","city":"Bregenz-Hard","address":"Rheinstrasse 20","amount":1.859,"distance_km":15.37,"lat":47.488611,"lon":9.702186,"open_247":1,"unattended":0},{"station_id":1474165,"name":"eni","city":"Lauterach","address":"Bundesstrasse 18","amount":1.859,"distance_km":15.4,"lat":47.4821512,"lon":9.73155,"open_247":0,"unattended":0},{"station_id":1474169,"name":"eni","city":"Bregenz","address":"Rheinstrasse 4","amount":1.859,"distance_km":17.11,"lat":47.4985,"lon":9.73258,"open_247":1,"unattended":0},{"station_id":1474173,"name":"eni","city":"Wolfurt","address":"Achstrasse 39","amount":1.859,"distance_km":15.8,"lat":47.48154,"lon":9.74613,"open_247":0,"unattended":0},{"station_id":1114,"name":"Wälderhaus","city":"Bezau","address":"Pelzrain","amount":1.89,"distance_km":18.47,"lat":47.37926,"lon":9.894218,"open_247":0,"unattended":1},{"station_id":1117,"name":"Wälderhaus","city":"Langenegg","address":"Gfäll 134","amount":1.89,"distance_km":22.85,"lat":47.472489,"lon":9.900355,"open_247":1,"unattended":1}]}}};
+const NAMES={DIE:"Diesel",SUP:"Super 95",GAS:"CNG"};
+let FUEL="DIE";
+const $=s=>document.querySelector(s);
+const cfg=()=>({L:+$("#li").value||45,C:+$("#co").value||6.5,D:+$("#de").value||2});
+const cost=(s,c)=>s.amount*c.L+(s.distance_km||0)*c.D*(c.C/100)*s.amount;
+const e3=v=>v.toFixed(3).replace(".",","), e2=v=>v.toFixed(2).replace(".",",");
+function tier(v,mn,mx){const t=mx>mn?(v-mn)/(mx-mn):0;return t<.34?"var(--good)":t<.67?"var(--mid)":"var(--bad)";}
+
+function segs(){
+  $("#seg").innerHTML=Object.keys(DATA.fuels).map(f=>
+    `<button data-f="${f}" aria-pressed="${f===FUEL}">${NAMES[f]||f}</button>`).join("");
+  $("#seg").querySelectorAll("button").forEach(b=>b.onclick=()=>{FUEL=b.dataset.f;segs();draw();});
+}
+function draw(){
+  const c=cfg(), L=DATA.fuels[FUEL].stations.map(s=>({...s,total:cost(s,c)}))
+                 .filter(s=>s.distance_km!=null).sort((a,b)=>a.total-b.total);
+  if(!L.length)return;
+  const am=L.map(s=>s.amount), mn=Math.min(...am), mx=Math.max(...am);
+  const best=L[0], near=L.reduce((a,b)=>a.distance_km<b.distance_km?a:b);
+  const cheap=L.reduce((a,b)=>a.amount<b.amount?a:b);
+  $("#best").innerHTML=
+    `<div><div class="eyebrow">beste Wahl &middot; ${NAMES[FUEL]}</div>
+       <div class="nm">${best.name||"ohne Namen"}</div>
+       <div class="sm">${best.address||""}${best.city?", "+best.city:""} &middot; ${e2(best.distance_km)} km</div></div>
+     <div><div class="pr">${e3(best.amount)}</div><div class="sm">€ je Liter</div></div>
+     <div class="r"><div class="sm">${c.L} l inklusive Umweg</div>
+       <div class="pr">${e2(best.total)} €</div>
+       <div class="sm">${cheap.station_id!==best.station_id
+         ? `${e2(cost(cheap,c)-best.total)} € günstiger als der Billigpreis in ${cheap.city||"—"} (${e2(cheap.distance_km)} km)`
+         : "zugleich der niedrigste Literpreis"}</div></div>`;
+  $("#rows").innerHTML=L.slice(0,14).map(s=>
+    `<tr><td class="num" style="font-weight:600">${e2(s.total)} €</td>
+      <td class="num"><span class="tier" style="background:${tier(s.amount,mn,mx)}"></span>${e3(s.amount)}</td>
+      <td class="num">${e2(s.distance_km)}</td>
+      <td>${s.name||"ohne Namen"}${s.open_247?'<span class="tag">24H</span>':""}${s.unattended?'<span class="tag">SB</span>':""}
+        <div class="cap" style="margin:0">${s.city||""}</div></td></tr>`).join("");
+  $("#cap").textContent=`${L.length} Tankstellen mit gemeldetem Preis · 14 günstigste gezeigt · `
+    +`nächstgelegene: ${near.name||"—"} (${e2(near.distance_km)} km, ${e3(near.amount)} €)`;
+  map(L,mn,mx);
+}
+function map(L,mn,mx){
+  const H=DATA.home,W=360,Ht=300,P=20;
+  const la=L.map(s=>s.lat).concat(H.lat), lo=L.map(s=>s.lon).concat(H.lon);
+  const a0=Math.min(...la),a1=Math.max(...la),o0=Math.min(...lo),o1=Math.max(...lo);
+  const X=v=>P+(v-o0)/((o1-o0)||1)*(W-2*P), Y=v=>Ht-P-(v-a0)/((a1-a0)||1)*(Ht-2*P);
+  const pts=L.filter(s=>s.lat).map(s=>{
+    const adv=(mx-s.amount)/((mx-mn)||1);
+    return `<circle cx="${X(s.lon).toFixed(1)}" cy="${Y(s.lat).toFixed(1)}" r="${(2.4+adv*5.2).toFixed(1)}"
+      fill="${tier(s.amount,mn,mx)}" opacity=".8"><title>${(s.name||"—").replace(/[<>&"]/g,"")} · ${e3(s.amount)} € · ${e2(s.distance_km)} km</title></circle>`;
+  }).join("");
+  $("#map").innerHTML=`<svg viewBox="0 0 ${W} ${Ht}" role="img"
+    aria-label="Streukarte der Tankstellen im Rheintal, eingefärbt nach Preis">
+    ${pts}<circle cx="${X(H.lon).toFixed(1)}" cy="${Y(H.lat).toFixed(1)}" r="7" fill="none"
+    stroke="var(--acc)" stroke-width="2"/></svg>`;
+}
+["li","co","de"].forEach(i=>$("#"+i).oninput=draw);
+segs();draw();
+</script>

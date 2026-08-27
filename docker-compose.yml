@@ -1,0 +1,20 @@
+services:
+  tankradar:
+    build: .
+    image: tankradar:latest
+    container_name: tankradar
+    restart: unless-stopped
+    ports:
+      - "842:842"
+    volumes:
+      - tankradar-data:/data
+    environment:
+      TZ: Europe/Vienna
+    # Sammler ist rein netzgebunden, braucht praktisch nichts
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+
+volumes:
+  tankradar-data:
